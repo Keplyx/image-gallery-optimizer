@@ -15,7 +15,6 @@ from utils import create_file_dialog, remove_images_from_folders
 
 # TODO:
 # Doc
-# Improve subtitle text
 # Add tooltip text
 # Display exit confirmation when job in process
 
@@ -62,6 +61,15 @@ class MainWindow(QMainWindow):
         dialog.exec_()
         dialog.deleteLater()
 
+    def closeEvent(self, event):
+        confirmation_dialog = QMessageBox.question(self, "Vraiment Quitter ?",
+                                                   "Des opérations sont encore en cours\nVoulez-vous vraiment quitter ?",
+                                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if confirmation_dialog == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
+
 
 class MainWidgets(QWidget):
 
@@ -107,8 +115,8 @@ class MainWidgets(QWidget):
     def init_ui(self):
         self.setLayout(self.main_layout)
 
-        subtitle = QLabel("Cet utilitaire permet de créer un fichier compressé des images du dossier sélectionné (et "
-                          "tout ses sous dossiers)\nainsi que la miniatures de images présentes")
+        subtitle = QLabel("Cet utilitaire permet d'optimiser facilement des galleries d'images pour des sites web\n"
+                          "Passez votre curseur au dessus des différents boutons pour avoir plus d'information")
         subtitle.setAlignment(Qt.AlignCenter)
 
         y = 0
