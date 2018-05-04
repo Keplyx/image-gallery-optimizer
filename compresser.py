@@ -20,7 +20,7 @@ class CompresserSignals(QObject):
 
 class Compresser(QRunnable):
 
-    def __init__(self, dir_list, image_list, parent_path, thumb_path, is_compress, is_zip, is_thumb):
+    def __init__(self, dir_list, image_list, parent_path, thumb_path, is_compress, is_zip, is_thumb, quality):
         super(Compresser, self).__init__()
         self.dir_list = dir_list
         self.image_list = image_list
@@ -29,6 +29,7 @@ class Compresser(QRunnable):
         self.is_compress = is_compress
         self.is_zip = is_zip
         self.is_thumb = is_thumb
+        self.quality = quality
         self.signals = CompresserSignals()
         self.should_stop = False
 
@@ -50,7 +51,7 @@ class Compresser(QRunnable):
             if self.is_aborted():
                 break
             img = Image.open(current_img)
-            img.save(current_img, optimize=True, quality=60)
+            img.save(current_img, optimize=True, quality=int(self.quality))
             self.signals.compress_done.emit()
         print("COMPRESSION FINISHED")
         if self.is_aborted():

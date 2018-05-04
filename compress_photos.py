@@ -5,12 +5,24 @@ import sys
 from PyQt5.QtCore import QThreadPool, Qt, pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QAction, QDesktopWidget, QWidget, QFrame, QLineEdit, QListWidget, QVBoxLayout, \
-    QLabel, QPushButton, QGridLayout, QMessageBox, QFileDialog, QDialog, QTabWidget, QApplication, QCheckBox, \
-    QProgressBar
+    QLabel, QPushButton, QGridLayout, QMessageBox, QDialog, QTabWidget, QApplication, QCheckBox, \
+    QProgressBar, QGroupBox, QDoubleSpinBox
 
 from compresser import Compresser
 from scanner import Scanner
 from utils import create_file_dialog
+
+# TODO:
+# Doc
+# Update image list when removing a folder
+# Update image/folder count text when removing a folder
+# Reset progress bars and image/folder count text when updating the parent directory
+# reset only the thumb progress bar when updating the thumbnail directory
+# Improve subtitle text
+# Add tooltip text
+# Disable thumb directory edit/selection when create thumb is unchecked
+# Update github link
+# Display exit confirmation when job in process
 
 
 class MainWindow(QMainWindow):
@@ -73,9 +85,14 @@ class MainWidgets(QWidget):
         self.stop_compress_button = QPushButton("Stop")
         self.list_title = QLabel("0 images dans 0 dossiers :")
         self.delete_button = QPushButton("Enlever sélectionné")
-        self.enable_zip_radio_button = QCheckBox("Créer .zip")
-        self.enable_thumb_radio_button = QCheckBox("Créer miniatures")
+        self.compress_group = QGroupBox()
+        self.compress_quality_label = QLabel("Qualité :")
+        self.compress_quality_edit = QDoubleSpinBox()
         self.enable_compress_radio_button = QCheckBox("Compresser photos")
+        self.zip_group = QGroupBox()
+        self.enable_zip_radio_button = QCheckBox("Créer .zip")
+        self.thumb_group = QGroupBox()
+        self.enable_thumb_radio_button = QCheckBox("Créer miniatures")
         self.compress_progress_bar = QProgressBar()
         self.compress_progress_text = QLabel("Compression")
         self.zip_progress_bar = QProgressBar()
@@ -85,7 +102,7 @@ class MainWidgets(QWidget):
         self.image_list = []
         self.main_layout = QGridLayout()
         self.scanner = Scanner("")
-        self.compresser = Compresser([], [], "", "", True, True, True)
+        self.compresser = Compresser([], [], "", "", True, True, True, 30)
         self.thread_pool = QThreadPool()
         self.init_ui()
 
@@ -135,19 +152,34 @@ class MainWidgets(QWidget):
         self.main_layout.addWidget(self.delete_button, y, 19, 1, 1)
 
         y += 1
+        compress_layout = QGridLayout()
+        self.compress_group.setLayout(compress_layout)
         self.enable_compress_radio_button.toggled.connect(self.set_compress_enabled)
         self.enable_compress_radio_button.setChecked(True)
-        self.main_layout.addWidget(self.enable_compress_radio_button, y, 19, 1, 1)
+        compress_layout.addWidget(self.enable_compress_radio_button, 0, 0, 1, 2)
+        compress_layout.addWidget(self.compress_quality_label, 1, 0, 1, 1)
+        self.compress_quality_edit.setMaximum(100)
+        self.compress_quality_edit.setMinimum(10)
+        self.compress_quality_edit.setValue(30)  # 30 to reduce filesize by 10 without losing too much quality
+        self.compress_quality_edit.setSingleStep(10)
+        compress_layout.addWidget(self.compress_quality_edit, 1, 1, 1, 1)
+        self.main_layout.addWidget(self.compress_group, y, 19, 1, 1)
 
         y += 1
+        zip_layout = QGridLayout()
         self.enable_zip_radio_button.toggled.connect(self.set_zip_enabled)
         self.enable_zip_radio_button.setChecked(True)
-        self.main_layout.addWidget(self.enable_zip_radio_button, y, 19, 1, 1)
+        zip_layout.addWidget(self.enable_zip_radio_button)
+        self.zip_group.setLayout(zip_layout)
+        self.main_layout.addWidget(self.zip_group, y, 19, 1, 1)
 
         y += 1
+        thumb_layout = QGridLayout()
         self.enable_thumb_radio_button.toggled.connect(self.set_thumb_enabled)
         self.enable_thumb_radio_button.setChecked(True)
-        self.main_layout.addWidget(self.enable_thumb_radio_button, y, 19, 1, 1)
+        thumb_layout.addWidget(self.enable_thumb_radio_button, y, 19, 1, 1)
+        self.thumb_group.setLayout(thumb_layout)
+        self.main_layout.addWidget(self.thumb_group, y, 19, 1, 1)
 
         y += 7
         self.compress_button.clicked.connect(self.compress_click)
@@ -190,6 +222,8 @@ class MainWidgets(QWidget):
     def set_compress_enabled(self, enabled):
         self.compress_progress_bar.setHidden(not enabled)
         self.compress_progress_text.setEnabled(enabled)
+        self.compress_quality_label.setEnabled(enabled)
+        self.compress_quality_edit.setEnabled(enabled)
 
     def set_zip_enabled(self, enabled):
         self.zip_progress_bar.setHidden(not enabled)
@@ -207,9 +241,9 @@ class MainWidgets(QWidget):
         self.compress_button.setEnabled(enabled)
         self.scan_button.setEnabled(enabled)
         self.delete_button.setEnabled(enabled)
-        self.enable_zip_radio_button.setEnabled(enabled)
-        self.enable_compress_radio_button.setEnabled(enabled)
-        self.enable_thumb_radio_button.setEnabled(enabled)
+        self.zip_group.setEnabled(enabled)
+        self.compress_group.setEnabled(enabled)
+        self.thumb_group.setEnabled(enabled)
         self.dir_selection_button.setEnabled(enabled)
         self.dir_thumb_selection_button.setEnabled(enabled)
         self.stop_scan_button.setEnabled((not enabled) and is_scan)
@@ -262,7 +296,7 @@ class MainWidgets(QWidget):
         msg = str(len(self.get_dir_list())) + " dossiers contenant " + str(len(self.image_list)) + \
               " images selectionnés\n\nActions à réaliser :"
         if self.enable_compress_radio_button.checkState():
-            msg += "\nCompression des images"
+            msg += "\nCompression des images (Qualité : " + str(int(self.compress_quality_edit.value())) + ")"
         if self.enable_zip_radio_button.checkState():
             msg += "\nCréation de .zip"
         if self.enable_thumb_radio_button.checkState():
@@ -280,7 +314,8 @@ class MainWidgets(QWidget):
                                          self.dir_thumb_path_line_edit.text(),
                                          self.enable_compress_radio_button.checkState(),
                                          self.enable_zip_radio_button.checkState(),
-                                         self.enable_thumb_radio_button.checkState())
+                                         self.enable_thumb_radio_button.checkState(),
+                                         self.compress_quality_edit.value())
             self.compresser.signals.finished_signal.connect(self.compress_finished)
             self.compresser.signals.new_compress_task_started.connect(self.compress_progress_text.setText)
             self.compresser.signals.new_zip_task_started.connect(self.zip_progress_text.setText)
