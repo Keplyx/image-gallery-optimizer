@@ -10,18 +10,13 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QDesktopWidget, QWidget, QFram
 
 from compresser import Compresser
 from scanner import Scanner
-from utils import create_file_dialog
+from utils import create_file_dialog, remove_images_from_folders
+
 
 # TODO:
 # Doc
-# Update image list when removing a folder
-# Update image/folder count text when removing a folder
-# Reset progress bars and image/folder count text when updating the parent directory
-# reset only the thumb progress bar when updating the thumbnail directory
 # Improve subtitle text
 # Add tooltip text
-# Disable thumb directory edit/selection when create thumb is unchecked
-# Update github link
 # Display exit confirmation when job in process
 
 
@@ -45,12 +40,14 @@ class MainWindow(QMainWindow):
         exit_button = QAction('Quitter', self)
         exit_button.setShortcut('Ctrl+Q')
         exit_button.setStatusTip('Quitter le logiciel')
+        exit_button.setIcon(QIcon("icons/icons8-sortie-96.png"))
         exit_button.triggered.connect(self.close)
         file_menu.addAction(exit_button)
 
         about_button = QAction('À Propos', self)
         about_button.setShortcut('Ctrl+H')
         about_button.setStatusTip('Voir les informations du logiciel')
+        about_button.setIcon(QIcon("icons/icons8-aide-96.png"))
         about_button.triggered.connect(self.display_help_dialog)
         help_menu.addAction(about_button)
 
@@ -70,11 +67,12 @@ class MainWidgets(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.dir_select_group = QFrame()
+        self.dir_path_group = QGroupBox()
         self.dir_path_line_edit = QLineEdit(os.path.dirname(__file__))
-        self.dir_selection_button = QPushButton("Selectionner")
+        self.dir_selection_button = QPushButton()
+        self.dir_thumb_path_group = QGroupBox()
         self.dir_thumb_path_line_edit = QLineEdit(os.path.dirname(__file__) + "_thumb")
-        self.dir_thumb_selection_button = QPushButton("Selectionner")
+        self.dir_thumb_selection_button = QPushButton()
         self.scan_progress_bar = QProgressBar()
         self.scan_progress_text = QLabel("Scan")
         self.dir_list_group = QFrame()
@@ -116,23 +114,33 @@ class MainWidgets(QWidget):
         y = 0
         self.main_layout.addWidget(subtitle, y, 0, 1, 20)
         y += 1
-        self.main_layout.addWidget(QLabel("Dossier parent :"), y, 0, 1, 1)
-        self.dir_path_line_edit.textChanged.connect(self.directories_list.clear)
-        self.main_layout.addWidget(self.dir_path_line_edit, y, 1, 1, 18)
+        dir_path_layout = QGridLayout()
+        dir_path_layout.addWidget(QLabel("Dossier parent :"), 0, 0, 1, 1)
+        self.dir_path_line_edit.textChanged.connect(self.update_parent_dir)
+        dir_path_layout.addWidget(self.dir_path_line_edit, 0, 1, 1, 18)
         self.dir_selection_button.clicked.connect(self.open_dir)
-        self.main_layout.addWidget(self.dir_selection_button, y, 19, 1, 1)
+        self.dir_selection_button.setIcon(QIcon("icons/icons8-dossier-ouvert-96.png"))
+        dir_path_layout.addWidget(self.dir_selection_button, 0, 19, 1, 1)
+        self.dir_path_group.setLayout(dir_path_layout)
+        self.main_layout.addWidget(self.dir_path_group, y, 0, 1, 20)
 
         y += 1
-        self.main_layout.addWidget(QLabel("Dossier miniatures :"), y, 0, 1, 1)
-        self.dir_thumb_path_line_edit.textChanged.connect(self.directories_list.clear)
-        self.main_layout.addWidget(self.dir_thumb_path_line_edit, y, 1, 1, 18)
+        dir_thumb_path_layout = QGridLayout()
+        dir_thumb_path_layout.addWidget(QLabel("Dossier miniatures :"), 0, 0, 1, 1)
+        self.dir_thumb_path_line_edit.textChanged.connect(self.reset_progress_thumb)
+        dir_thumb_path_layout.addWidget(self.dir_thumb_path_line_edit, 0, 1, 1, 18)
         self.dir_thumb_selection_button.clicked.connect(self.open_thumb_dir)
-        self.main_layout.addWidget(self.dir_thumb_selection_button, y, 19, 1, 1)
+        self.dir_thumb_selection_button.setIcon(QIcon("icons/icons8-dossier-ouvert-96.png"))
+        dir_thumb_path_layout.addWidget(self.dir_thumb_selection_button, 0, 19, 1, 1)
+        self.dir_thumb_path_group.setLayout(dir_thumb_path_layout)
+        self.main_layout.addWidget(self.dir_thumb_path_group, y, 0, 1, 20)
 
         y += 1
         self.scan_button.clicked.connect(self.scan_click)
+        self.scan_button.setIcon(QIcon("icons/icons8-chercher-96.png"))
         self.main_layout.addWidget(self.scan_button, y, 5, 1, 10)
         self.stop_scan_button.clicked.connect(self.stop_scan)
+        self.stop_scan_button.setIcon(QIcon("icons/icons8-annuler-96.png"))
         self.stop_scan_button.setEnabled(False)
         self.main_layout.addWidget(self.stop_scan_button, y, 15, 1, 1)
 
@@ -149,6 +157,7 @@ class MainWidgets(QWidget):
         y += 1
         self.main_layout.addWidget(self.directories_list, y, 0, 10, 19)
         self.delete_button.clicked.connect(self.dir_list_delete_selected)
+        self.delete_button.setIcon(QIcon("icons/icons8-effacer-96.png"))
         self.main_layout.addWidget(self.delete_button, y, 19, 1, 1)
 
         y += 1
@@ -183,8 +192,10 @@ class MainWidgets(QWidget):
 
         y += 7
         self.compress_button.clicked.connect(self.compress_click)
+        self.compress_button.setIcon(QIcon("icons/icons8-compresse-96.png"))
         self.main_layout.addWidget(self.compress_button, y, 5, 1, 10)
         self.stop_compress_button.clicked.connect(self.stop_compress)
+        self.stop_compress_button.setIcon(QIcon("icons/icons8-annuler-96.png"))
         self.stop_compress_button.setEnabled(False)
         self.main_layout.addWidget(self.stop_compress_button, y, 15, 1, 1)
 
@@ -209,9 +220,24 @@ class MainWidgets(QWidget):
         self.thumb_progress_bar.setTextVisible(False)
         self.main_layout.addWidget(self.thumb_progress_bar, y, 0, 1, 20)
 
+    def update_scan_result_text(self):
+        self.list_title.setText(
+            str(len(self.image_list)) + " images dans " + str(len(self.get_dir_list())) + " dossiers :")
+
+    def update_parent_dir(self):
+        self.directories_list.clear()
+        self.image_list = []
+        self.update_scan_result_text()
+        self.reset_progress_scan()
+        self.reset_progress_compress()
+        self.reset_progress_zip()
+        self.reset_progress_thumb()
+
     def dir_list_delete_selected(self):
         for selected_item in self.directories_list.selectedItems():
+            self.image_list = remove_images_from_folders(selected_item.text(), self.image_list)
             self.directories_list.takeItem(self.directories_list.row(selected_item))
+            self.update_scan_result_text()
 
     def get_dir_list(self):
         items = []
@@ -232,6 +258,7 @@ class MainWidgets(QWidget):
     def set_thumb_enabled(self, enabled):
         self.thumb_progress_bar.setHidden(not enabled)
         self.thumb_progress_text.setEnabled(enabled)
+        self.dir_thumb_path_group.setEnabled(enabled)
 
     def set_ui_enabled(self, enabled, is_scan):
         self.dir_path_line_edit.setEnabled(enabled)
@@ -270,8 +297,7 @@ class MainWidgets(QWidget):
     def scan_finished(self, dir_list, image_list):
         self.set_ui_enabled(True, True)
         self.image_list = image_list
-        self.list_title.setText(
-            str(len(self.image_list)) + " images dans " + str(len(self.get_dir_list())) + " dossiers :")
+        self.update_scan_result_text()
         self.reset_progress_compress()
         self.reset_progress_zip()
         self.reset_progress_thumb()
@@ -331,25 +357,37 @@ class MainWidgets(QWidget):
     def reset_progress_scan(self):
         self.scan_progress_text.setText("Scan")
         self.scan_progress_bar.setMinimum(0)
-        self.scan_progress_bar.setMaximum(len(self.get_dir_list()))
+        if len(self.get_dir_list()) != 0:
+            self.scan_progress_bar.setMaximum(len(self.get_dir_list()))
+        else:
+            self.scan_progress_bar.setMaximum(100)
         self.scan_progress_bar.setValue(0)
 
     def reset_progress_compress(self):
         self.compress_progress_text.setText("Compression")
         self.compress_progress_bar.setMinimum(0)
-        self.compress_progress_bar.setMaximum(len(self.image_list))
+        if len(self.image_list) != 0:
+            self.compress_progress_bar.setMaximum(len(self.image_list))
+        else:
+            self.compress_progress_bar.setMaximum(100)
         self.compress_progress_bar.setValue(0)
 
     def reset_progress_zip(self):
         self.zip_progress_text.setText("Création de .zip")
         self.zip_progress_bar.setMinimum(0)
-        self.zip_progress_bar.setMaximum(len(self.get_dir_list()))
+        if len(self.get_dir_list()) != 0:
+            self.zip_progress_bar.setMaximum(len(self.get_dir_list()))
+        else:
+            self.zip_progress_bar.setMaximum(100)
         self.zip_progress_bar.setValue(0)
 
     def reset_progress_thumb(self):
         self.thumb_progress_text.setText("Création de miniatures")
         self.thumb_progress_bar.setMinimum(0)
-        self.thumb_progress_bar.setMaximum(len(self.image_list))
+        if len(self.image_list) != 0:
+            self.thumb_progress_bar.setMaximum(len(self.image_list))
+        else:
+            self.thumb_progress_bar.setMaximum(100)
         self.thumb_progress_bar.setValue(0)
 
     def add_progress_scan(self):
@@ -421,21 +459,16 @@ class HelpDialog(QDialog):
 
         gh_link = QLabel()
         gh_link.setOpenExternalLinks(True)
-        gh_link.setText("<a href='https://github.com/Keplyx'>https://github.com/Keplyx</a>")
+        gh_link.setText("<a href='https://github.com/Keplyx/image-gallery-optimizer'>https://github.com/Keplyx/image-gallery-optimizer</a>")
         gh_link.setAlignment(Qt.AlignCenter)
         self.tab1.layout.addWidget(gh_link)
         self.tab1.setLayout(self.tab1.layout)
 
     def create_libs_tab(self):
         self.tab2.layout = QVBoxLayout(self)
-        qt_lib = QLabel("Qt5")
-        qt_lib.setAlignment(Qt.AlignCenter)
-        self.tab2.layout.addWidget(qt_lib)
-
-        python_lib = QLabel("python3 avec PyQt5")
-        python_lib.setAlignment(Qt.AlignCenter)
-        self.tab2.layout.addWidget(python_lib)
-
+        text = QLabel("Qt5\npython3 avec PyQt5\nIcons8 pour les icônes")
+        text.setAlignment(Qt.AlignCenter)
+        self.tab2.layout.addWidget(text)
         self.tab2.setLayout(self.tab2.layout)
 
     @pyqtSlot()

@@ -65,6 +65,10 @@ def get_images_in_dir(path):
 
 
 def create_file_dialog():
+    """
+    Create a file dialog object, ready to use
+    :return:
+    """
     dialog = QFileDialog()
     dialog.setFileMode(QFileDialog.DirectoryOnly)
     options = QFileDialog.Options()
@@ -72,3 +76,17 @@ def create_file_dialog():
     options |= QFileDialog.ShowDirsOnly
     dialog.setOptions(options)
     return dialog
+
+
+def remove_images_from_folders(folder: str, images_list: list):
+    """
+    Remove images in the specified folder, subfolders are ignored
+    :param folder: folder to remove images from
+    :param images_list: list of images to edit
+    :return: edited image list
+    """
+    new_list = []
+    for img in images_list:
+        if folder != os.path.dirname(img):
+            new_list.append(img)
+    return new_list
