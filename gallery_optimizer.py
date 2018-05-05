@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.main_widget = MainWidgets()
         self.setCentralWidget(self.main_widget)
         self.create_menu_bar()
-        self.setWindowTitle('Optimisateur de Galleries')
+        self.setWindowTitle('Optimisateur de Galeries')
         self.setWindowIcon(QIcon(resource_path('icons/main-icon.png')))
 
     def create_menu_bar(self):
@@ -139,7 +139,7 @@ class MainWidgets(QWidget):
         """
         self.setLayout(self.main_layout)
 
-        subtitle = QLabel("Cet utilitaire permet d'optimiser facilement des galleries d'images pour des sites web\n"
+        subtitle = QLabel("Cet utilitaire permet d'optimiser facilement des galeries d'images pour des sites web\n"
                           "Passez votre curseur au dessus des différents boutons pour avoir plus d'information")
         subtitle.setAlignment(Qt.AlignCenter)
 

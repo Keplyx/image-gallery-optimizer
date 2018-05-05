@@ -21,9 +21,10 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='Optimisateur de Galleries',
+          name='Optimisateur de Galeries',
           debug=False,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=True )
+          console=False,
+		  icon='icon.ico')
