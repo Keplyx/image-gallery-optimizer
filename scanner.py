@@ -6,6 +6,9 @@ from utils import is_directory_valid, get_images_in_dir
 
 
 class ScannerSignals(QObject):
+    """
+    Store thread signal for communication with the UI
+    """
     scan_finished_signal = pyqtSignal(list, list)  # thread has finished
     scanned_dir_signal = pyqtSignal(str)  # thread scanned a directory
     scanned_dir_finished = pyqtSignal()  # all directories scanned
@@ -13,9 +16,10 @@ class ScannerSignals(QObject):
     new_scan_task_started = pyqtSignal(str)  # update ui
 
 
-# Put directory scanning operations here
 class Scanner(QRunnable):
-
+    """
+    Scan operations thread
+    """
     def __init__(self, path):
         super(Scanner, self).__init__()
         self.path = path
@@ -23,9 +27,17 @@ class Scanner(QRunnable):
         self.should_stop = False
 
     def stop(self):
+        """
+        stop the scanning thread
+        :return:
+        """
         self.should_stop = True
 
     def is_aborted(self):
+        """
+        Check if the scanning thread was aborted
+        :return: True is the thread was aborted, false otherwise
+        """
         return self.should_stop
 
     @pyqtSlot()

@@ -8,7 +8,10 @@ from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 from utils import is_file_valid_image, get_current_dir, get_new_path
 
 
-class CompresserSignals(QObject):
+class OptimizerSignals(QObject):
+    """
+    Store thread signal for communication with the UI
+    """
     finished_signal = pyqtSignal()  # thread has finished
     new_zip_task_started = pyqtSignal(str)  # tell ui what to display
     new_thumb_task_started = pyqtSignal(str)  # tell ui what to display
@@ -18,10 +21,12 @@ class CompresserSignals(QObject):
     compress_done = pyqtSignal()  # finished compressing an image
 
 
-class Compresser(QRunnable):
-
+class ImageOptimizer(QRunnable):
+    """
+    Optimisation operations thread
+    """
     def __init__(self, dir_list, image_list, parent_path, thumb_path, is_compress, is_zip, is_thumb, quality):
-        super(Compresser, self).__init__()
+        super(ImageOptimizer, self).__init__()
         self.dir_list = dir_list
         self.image_list = image_list
         self.parent_path = parent_path
@@ -30,13 +35,21 @@ class Compresser(QRunnable):
         self.is_zip = is_zip
         self.is_thumb = is_thumb
         self.quality = quality
-        self.signals = CompresserSignals()
+        self.signals = OptimizerSignals()
         self.should_stop = False
 
     def stop(self):
+        """
+        stop the optimisation thread
+        :return:
+        """
         self.should_stop = True
 
     def is_aborted(self):
+        """
+        Check if the optimisation thread was aborted
+        :return: True is the thread was aborted, false otherwise
+        """
         return self.should_stop
 
     def compress_images(self):
