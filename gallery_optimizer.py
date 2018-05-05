@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QDesktopWidget, QWidget, QFram
     QLabel, QPushButton, QGridLayout, QMessageBox, QDialog, QTabWidget, QApplication, QCheckBox, \
     QProgressBar, QGroupBox, QDoubleSpinBox
 
-from imageoptimizer import ImageOptimizer
+from optimizer import ImageOptimizer
 from scanner import Scanner
 from utils import create_file_dialog, remove_images_from_folders
 
