@@ -62,13 +62,14 @@ class MainWindow(QMainWindow):
         dialog.deleteLater()
 
     def closeEvent(self, event):
-        confirmation_dialog = QMessageBox.question(self, "Vraiment Quitter ?",
-                                                   "Des opérations sont encore en cours\nVoulez-vous vraiment quitter ?",
-                                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if confirmation_dialog == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
+        if self.main_widget.is_task_in_progress:
+            confirmation_dialog = QMessageBox.question(self, "Vraiment Quitter ?",
+                                                       "Des opérations sont encore en cours\nVoulez-vous vraiment quitter ?",
+                                                       QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if confirmation_dialog == QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
 
 
 class MainWidgets(QWidget):
@@ -110,6 +111,7 @@ class MainWidgets(QWidget):
         self.scanner = Scanner("")
         self.compresser = Compresser([], [], "", "", True, True, True, 30)
         self.thread_pool = QThreadPool()
+        self.is_task_in_progress = False;
         self.init_ui()
 
     def init_ui(self):
@@ -269,6 +271,7 @@ class MainWidgets(QWidget):
         self.dir_thumb_path_group.setEnabled(enabled)
 
     def set_ui_enabled(self, enabled, is_scan):
+        self.is_task_in_progress = not enabled
         self.dir_path_line_edit.setEnabled(enabled)
         self.dir_thumb_path_line_edit.setEnabled(enabled)
         self.stop_compress_button.setEnabled(enabled)
