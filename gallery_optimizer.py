@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QDesktopWidget, QWidget, QFram
 
 from optimizer import ImageOptimizer
 from scanner import Scanner
-from utils import create_file_dialog, remove_images_from_folders
+from utils import create_file_dialog, remove_images_from_folders, resource_path
 
 
 # TODO:
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.main_widget)
         self.create_menu_bar()
         self.setWindowTitle('Optimisateur de Galleries')
-        self.setWindowIcon(QIcon('icons/main-icon.png'))
+        self.setWindowIcon(QIcon(resource_path('icons/main-icon.png')))
 
     def create_menu_bar(self):
         """
@@ -42,14 +42,14 @@ class MainWindow(QMainWindow):
         exit_button = QAction('Quitter', self)
         exit_button.setShortcut('Ctrl+Q')
         exit_button.setStatusTip('Quitter le logiciel')
-        exit_button.setIcon(QIcon("icons/icons8-sortie-96.png"))
+        exit_button.setIcon(QIcon(resource_path("icons/icons8-sortie-96.png")))
         exit_button.triggered.connect(self.close)
         file_menu.addAction(exit_button)
 
         about_button = QAction('À Propos', self)
         about_button.setShortcut('Ctrl+H')
         about_button.setStatusTip('Voir les informations du logiciel')
-        about_button.setIcon(QIcon("icons/icons8-aide-96.png"))
+        about_button.setIcon(QIcon(resource_path("icons/icons8-aide-96.png")))
         about_button.triggered.connect(self.display_help_dialog)
         help_menu.addAction(about_button)
 
@@ -95,10 +95,10 @@ class MainWidgets(QWidget):
     def __init__(self):
         super().__init__()
         self.dir_path_group = QGroupBox()
-        self.dir_path_line_edit = QLineEdit(os.path.dirname(__file__))
+        self.dir_path_line_edit = QLineEdit(os.getcwd())
         self.dir_selection_button = QPushButton()
         self.dir_thumb_path_group = QGroupBox()
-        self.dir_thumb_path_line_edit = QLineEdit(os.path.dirname(__file__) + "_thumb")
+        self.dir_thumb_path_line_edit = QLineEdit(os.getcwd() + "_thumb")
         self.dir_thumb_selection_button = QPushButton()
         self.scan_progress_bar = QProgressBar()
         self.scan_progress_text = QLabel("Scan")
@@ -152,7 +152,7 @@ class MainWidgets(QWidget):
         self.dir_path_line_edit.setToolTip("Chemin vers le dossier contenant la gallerie d'images")
         dir_path_layout.addWidget(self.dir_path_line_edit, 0, 1, 1, 18)
         self.dir_selection_button.clicked.connect(self.open_dir)
-        self.dir_selection_button.setIcon(QIcon("icons/icons8-dossier-ouvert-96.png"))
+        self.dir_selection_button.setIcon(QIcon(resource_path("icons/icons8-dossier-ouvert-96.png")))
         self.dir_selection_button.setToolTip("Ouvrir l'explorateur de fichiers pour sélectionner le dossier")
         dir_path_layout.addWidget(self.dir_selection_button, 0, 19, 1, 1)
         self.dir_path_group.setLayout(dir_path_layout)
@@ -165,7 +165,7 @@ class MainWidgets(QWidget):
         self.dir_thumb_path_line_edit.setToolTip("Chemin vers le dossier où les miniatures seront enregistreés")
         dir_thumb_path_layout.addWidget(self.dir_thumb_path_line_edit, 0, 1, 1, 18)
         self.dir_thumb_selection_button.clicked.connect(self.open_thumb_dir)
-        self.dir_thumb_selection_button.setIcon(QIcon("icons/icons8-dossier-ouvert-96.png"))
+        self.dir_thumb_selection_button.setIcon(QIcon(resource_path("icons/icons8-dossier-ouvert-96.png")))
         self.dir_thumb_selection_button.setToolTip("Ouvrir l'explorateur de fichiers pour sélectionner le dossier")
         dir_thumb_path_layout.addWidget(self.dir_thumb_selection_button, 0, 19, 1, 1)
         self.dir_thumb_path_group.setLayout(dir_thumb_path_layout)
@@ -173,11 +173,11 @@ class MainWidgets(QWidget):
 
         y += 1
         self.scan_button.clicked.connect(self.scan_click)
-        self.scan_button.setIcon(QIcon("icons/icons8-chercher-96.png"))
+        self.scan_button.setIcon(QIcon(resource_path("icons/icons8-chercher-96.png")))
         self.scan_button.setToolTip("Lancer le scan des sous-dossiers et images contenues dans le dossier parent")
         self.main_layout.addWidget(self.scan_button, y, 5, 1, 10)
         self.stop_scan_button.clicked.connect(self.stop_scan)
-        self.stop_scan_button.setIcon(QIcon("icons/icons8-annuler-96.png"))
+        self.stop_scan_button.setIcon(QIcon(resource_path("icons/icons8-annuler-96.png")))
         self.stop_scan_button.setToolTip("Arrêter le scan")
         self.stop_scan_button.setEnabled(False)
         self.main_layout.addWidget(self.stop_scan_button, y, 15, 1, 1)
@@ -198,7 +198,7 @@ class MainWidgets(QWidget):
         self.directories_list.setToolTip("Liste des dossiers contenant des images, trouvés dans le dossier parent")
         self.main_layout.addWidget(self.directories_list, y, 0, 10, 19)
         self.delete_button.clicked.connect(self.dir_list_delete_selected)
-        self.delete_button.setIcon(QIcon("icons/icons8-effacer-96.png"))
+        self.delete_button.setIcon(QIcon(resource_path("icons/icons8-effacer-96.png")))
         self.delete_button.setToolTip("Ignorer le dossier sélectionné et toutes ses images lors de l'optimisation")
         self.main_layout.addWidget(self.delete_button, y, 19, 1, 1)
 
@@ -245,11 +245,11 @@ class MainWidgets(QWidget):
 
         y += 7
         self.optimize_button.clicked.connect(self.optimize_click)
-        self.optimize_button.setIcon(QIcon("icons/icons8-compresse-96.png"))
+        self.optimize_button.setIcon(QIcon(resource_path("icons/icons8-compresse-96.png")))
         self.optimize_button.setToolTip("Optimiser les images contenues dans les dossiers ci-dessus en utilisant les paramètres sélectionnés")
         self.main_layout.addWidget(self.optimize_button, y, 5, 1, 10)
         self.stop_optimize_button.clicked.connect(self.stop_optimize)
-        self.stop_optimize_button.setIcon(QIcon("icons/icons8-annuler-96.png"))
+        self.stop_optimize_button.setIcon(QIcon(resource_path("icons/icons8-annuler-96.png")))
         self.stop_optimize_button.setToolTip("Arrêter l'optimisation")
         self.stop_optimize_button.setEnabled(False)
         self.main_layout.addWidget(self.stop_optimize_button, y, 15, 1, 1)

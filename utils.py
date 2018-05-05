@@ -1,4 +1,5 @@
 import os
+import sys
 
 from PyQt5.QtWidgets import QFileDialog
 
@@ -90,3 +91,9 @@ def remove_images_from_folders(folder: str, images_list: list):
         if folder != os.path.dirname(img):
             new_list.append(img)
     return new_list
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.getcwd())
+    return os.path.join(base_path, relative_path)
