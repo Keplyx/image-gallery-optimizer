@@ -149,7 +149,7 @@ class MainWidgets(QWidget):
         dir_path_layout = QGridLayout()
         dir_path_layout.addWidget(QLabel("Dossier parent :"), 0, 0, 1, 1)
         self.dir_path_line_edit.textChanged.connect(self.update_parent_dir)
-        self.dir_path_line_edit.setToolTip("Chemin vers le dossier contenant la gallerie d'images")
+        self.dir_path_line_edit.setToolTip("Chemin vers le dossier contenant la galerie d'images")
         dir_path_layout.addWidget(self.dir_path_line_edit, 0, 1, 1, 18)
         self.dir_selection_button.clicked.connect(self.open_dir)
         self.dir_selection_button.setIcon(QIcon(resource_path("icons/icons8-dossier-ouvert-96.png")))
@@ -208,7 +208,7 @@ class MainWidgets(QWidget):
         self.enable_compress_radio_button.toggled.connect(self.set_compress_enabled)
         self.enable_compress_radio_button.setChecked(True)
         self.enable_compress_radio_button.setToolTip("Activer la compression des images. "
-                                                     "Cela permet de réduire la taille de la gallerie sur le disque "
+                                                     "Cela permet de réduire la taille de la galerie sur le disque "
                                                      "sans perdre trop de qualité")
         compress_layout.addWidget(self.enable_compress_radio_button, 0, 0, 1, 2)
         compress_layout.addWidget(self.compress_quality_label, 1, 0, 1, 1)
@@ -616,8 +616,8 @@ class HelpDialog(QDialog):
         self.resize(300, 100)
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
-
-        title = QLabel("Compression de photos")
+        self.setWindowTitle('Optimisateur de Galeries - À Propos')
+        title = QLabel("Optimisateur de Galeries")
         font = title.font()
         font.setBold(True)
         font.setPixelSize(20)
